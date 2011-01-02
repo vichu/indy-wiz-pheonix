@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="812" height="700" title="Features" fontSize="14" fontFamily="Georgia" fontWeight="normal" fontStyle="normal" textAlign="center">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Label x="15" y="26" text="Surveys are by no means new. But today, conducting a feedback session with a substantial sample is substantially much more efficient and affordable with new technologies. IndyWiz’s Phoenix provides you such platform where it is no longer necessary to assume or guess what your students’ needs and expectations might be. Ask them yourself—with a quick, cost-efficient online survey. You might be surprised what you learn!" width="750" height="122" verticalAlign="justify" textAlign="left" fontSize="14"/>
+	<s:Label x="10" y="172" text="ASK :" width="48" height="28" fontWeight="bold"/>
+	<s:Label x="41" y="191" text="At the end of semester utilize IndyWiz's Simba to evaluate the overall classroom experience of a student." width="673" height="39" verticalAlign="middle"/>
+	<s:Label x="10" y="238" text="ANALYSE :" width="94" height="27" fontWeight="bold" verticalAlign="middle"/>
+	<s:Label x="41" y="273" text=" Also, this app generates reports with rich graphics." width="329" height="23" verticalAlign="middle"/>
+	<s:Label x="17" y="300" text="IMPROVE :" height="29" fontWeight="bold" verticalAlign="middle"/>
+	<s:Label x="44" y="333" text=" Analysis of the results will assist faculty. After all &quot;Feedback Is The Breakfast Of Champions.&quot;" width="668" height="26" verticalAlign="middle" textAlign="left"/>
+	<s:Label x="15" y="377" text="7 Reasons to use " width="108" height="29" verticalAlign="middle" textAlign="left"/>
+	<s:Label x="131" y="377" text="IndyWiz's Phoenix:" height="29" width="148" verticalAlign="middle" textAlign="left" fontWeight="bold"/>
+	<s:Label x="45" y="414" text="•&#x9;You can create polls and feedback sessions in minutes." height="24" width="425" verticalAlign="middle"/>
+	<s:Label x="64" y="440" text="•&#x9;Block duplicates voting." height="24" width="204" verticalAlign="middle" textAlign="left"/>
+	<s:Label x="64" y="468" text="•&#x9;Allow single answers." height="24" width="191" verticalAlign="middle" textAlign="left"/>
+	<s:Label x="64" y="495" text="•&#x9;Create as many surveys as you want – no limits!" height="24" width="425" verticalAlign="middle" textAlign="left"/>
+	<s:Label x="64" y="523" text="•&#x9;Select form a variety of color themes." height="24" width="425" verticalAlign="middle" textAlign="left"/>
+	<s:Label x="63" y="552" text="•&#x9;Real time data analysis. Your reports are updated in real-time." height="24" width="444" verticalAlign="middle" textAlign="left"/>
+	<s:Label x="63" y="580" text="•&#x9;Create powerful and stunning reports with rich graphics." height="24" width="444" verticalAlign="middle" textAlign="left"/>
+</s:TitleWindow>
