@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="356" height="176">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			[Bindable]
+			private var cards:ArrayCollection = new ArrayCollection(
+				[ {label:"IT"}, 
+					{label:"CSE"}, 
+					{label:"ECE"}, 
+					{label:"EEE"}, 
+					{label:"CHEM"}, 
+					{label:"MECH"},
+					{label:"CIVIL"}]);
+			[Bindable]
+			private var cardsYr:ArrayCollection = new ArrayCollection(
+				[ {label:"1"}, 
+					{label:"2-1"}, 
+					{label:"2-2"}, 
+					{label:"3-1"}, 
+					{label:"3-2"}, 
+					{label:"4-1"},
+					{label:"4-2"}]);
+		]]>
+	</fx:Script>
+	<s:Label x="24" y="29" text="Department :" fontSize="14" fontFamily="Georgia" fontWeight="bold" verticalAlign="middle"/>
+	<s:Label x="78" y="67" text="Year :" fontSize="14" fontFamily="Georgia" fontWeight="bold" verticalAlign="middle"/>
+	<s:ComboBox x="140" y="26" id="deptTitleId" selectedIndex="0" dataProvider="{cards}"/>
+	<s:ComboBox x="140" y="61" id="yearTitleId" selectedIndex="0" dataProvider="{cardsYr}"/>
+	<s:Button y="107" label="Show Stats" horizontalCenter="0" fontFamily="Georgia" fontSize="12" id="showStatBut"/>
+</s:TitleWindow>
