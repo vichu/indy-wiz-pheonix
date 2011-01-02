@@ -1,0 +1,604 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="connect()" currentState="State1">
+	<s:states>
+		<s:State name="State1"/>
+		<s:State name="formGen"/>
+		<s:State name="feedBackState"/>
+	</s:states>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:SeriesSlide id="slideIn" duration="1000" direction="up"/>
+		<mx:SeriesSlide id="slideOut" duration="1000" direction="down"/>
+		<mx:SeriesSlide id="slideLeft" duration="1000" direction="left"/>
+		<mx:SeriesSlide id="slideRight" duration="1000" direction="right"/>
+		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import flash.net.sendToURL;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.FocusManager;
+			import mx.managers.PopUpManager;
+			import mx.printing.FlexPrintJob;
+			import mx.printing.FlexPrintJobScaleType;
+			[Bindable]
+			private var textFacId:String;
+			[Bindable]
+			private var textSubId:String;
+			[Bindable]
+			private var textFeedId:String;
+			[Bindable]
+			private var textYrFeedId:String;
+			[Bindable]
+			private var facArrH:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var abc1:Array = new Array();
+			[Bindable]
+			private var abc2:Array = new Array();
+			[Bindable]
+			private var res:Array = new Array();
+			private var serverSocket:ServerSocket;
+			[Bindable]
+			private var clientSocket:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var clientCount:Number;
+			[Bindable]
+			private var statArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var rightGrphArr:ArrayCollection = new ArrayCollection();
+			private var conn:SQLConnection = new SQLConnection();
+			private var dbStatement:SQLStatement=new SQLStatement();
+			
+			private var clientConnDp:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var cliResArr:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var ratArr:Array = new Array();
+			[Bindable]
+			private var cards:ArrayCollection = new ArrayCollection(
+				[ {label:"IT"}, 
+					{label:"CSE"}, 
+					{label:"ECE"}, 
+					{label:"EEE"}, 
+					{label:"CHEM"}, 
+					{label:"MECH"},
+					{label:"CIVIL"}]);
+			[Bindable]
+			private var cardsFac:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var cardsYr:ArrayCollection = new ArrayCollection(
+				[ {label:"1"}, 
+					{label:"2-1"}, 
+					{label:"2-2"}, 
+					{label:"3-1"}, 
+					{label:"3-2"}, 
+					{label:"4-1"},
+					{label:"4-2"}]);
+			
+			
+			private function connect():void 
+			{
+				for(var cnt:Number=0;cnt<10;cnt++)
+				cardsFac.addItem({subName:"",facName:""});
+				serverSocket = new ServerSocket();
+				serverSocket.addEventListener(ServerSocketConnectEvent.CONNECT, onConnect);
+				serverSocket.bind(Number(1238));
+				serverSocket.listen();
+				Alert.show("Yup i'm on port no 1238");
+			}
+			
+			private function onConnect(e:ServerSocketConnectEvent):void 
+			{
+				Alert.show("Client is connected");
+				var num:Number = clientSocket.length;
+				clientCount = num+1;
+				clientSocket.addItem(e.socket);
+				clientSocket[num].addEventListener(ProgressEvent.SOCKET_DATA,onData);
+				clientSocket[num].addEventListener(Event.CLOSE, onConnectionClosed);
+					
+				var folder:File = File.applicationDirectory;
+				var dbfile:File = folder.resolvePath("SimbaSer.db");
+				
+					conn.open(dbfile,SQLMode.CREATE);
+					try
+					{
+					dbStatement.sqlConnection = conn;					
+					dbStatement.clearParameters();
+					dbStatement.text = "select * from squest;";
+					dbStatement.execute();
+					abc1 = dbStatement.getResult().data;
+					dbStatement.clearParameters();
+					dbStatement.text = "select * from sformTab";
+					dbStatement.execute();
+					abc2 = dbStatement.getResult().data;
+					res[0] = abc1;
+					res[1] = abc2;
+					clientSocket[num].writeObject(res);
+					clientSocket[num].flush();				
+					conn.close();
+					}
+					catch(err:SQLError)
+					{
+						Alert.show(err.toString());
+					}
+			}
+			
+			private function onData(event: ProgressEvent):void {
+				//
+				for(var s:Number = 0;s<clientSocket.length;s++)
+				{
+					if(clientSocket[s].remotePort == event.currentTarget.remotePort)
+					{
+						cliResArr = clientSocket[s].readObject();
+						
+						
+						var folder:File = File.applicationDirectory;
+						var dbfile:File = folder.resolvePath("SimbaSer.db");
+						
+						conn.open(dbfile,SQLMode.CREATE);
+						try
+						{
+							dbStatement.sqlConnection = conn;
+							dbStatement.clearParameters();
+							conn.begin();
+							dbStatement.text = "insert into cliResTab values(:subp,:facp,:yearp,:deptp,:ratingp,:questionp)";
+							
+							for(var lop:Number = 0;lop < cliResArr.length; lop++)
+							{
+							dbStatement.parameters[":subp"] = cliResArr[lop].subName;
+							dbStatement.parameters[":facp"] = cliResArr[lop].facName;
+							dbStatement.parameters[":yearp"] = cliResArr[lop].year;
+							dbStatement.parameters[":deptp"] = cliResArr[lop].dept;
+							dbStatement.parameters[":ratingp"] = cliResArr[lop].rating;
+							dbStatement.parameters[":questionp"] = cliResArr[lop].question;
+							dbStatement.execute();
+							}
+							conn.commit();
+						}
+						catch(er:SQLError)
+						{
+							Alert.show(er.toString());
+							conn.rollback();
+						}
+						conn.close();
+						var temArr:Array = new Array();
+						temArr.push({data:"Data Recieved",value:1});
+						clientSocket[s].writeObject(temArr);	
+						clientSocket[s].flush();
+						break;
+						
+						
+					}
+					
+				}
+				
+				//var checkObj:CheckNumber = (CheckNumberObj;
+				
+				
+			}
+			
+			private function onConnectionClosed(e:Event):void {
+				for(var ss:Number = 0;ss<clientSocket.length;ss++)
+				{
+					if(clientSocket[ss].remotePort == e.currentTarget.remotePort)
+					{
+						/*var tempSocket:Socket;
+						tempSocket = clientSocket[ss];
+						clientSocket[ss] = clientSocket[clientSocket.length-1];
+						clientSocket[clientSocket.length-1] = tempSocket;
+					//	swapElements(clientSocket[ss],clientSocket[clientSocket.length-1]);*/
+						clientSocket.removeItemAt(ss);
+					}
+				}
+				clientCount = clientSocket.length;
+				
+				Alert.show("Client Socket is Closed");
+			}
+			
+			private function genFacGrph(evnt:ListEvent):void
+			{
+					var slctdItm:String = evnt.currentTarget.selectedItem.Faculty;
+					textFacId = slctdItm;
+					
+					var folder:File = File.applicationDirectory;
+					var dbfile:File = folder.resolvePath("SimbaSer.db");
+					conn.open(dbfile,SQLMode.CREATE);
+					try
+					{
+						var len:Number = statArr.length;
+						//for(var del:Number=0;del<len;del++)
+						//	statArr.pop();
+						statArr.removeAll();
+						
+						
+						dbStatement.sqlConnection = conn;
+						dbStatement.text = "select distinct(question),subject from cliResTab where faculty like '"+slctdItm+
+							"' and dept like '"+textFeedId+"' and year like '"+textYrFeedId+"';";
+						dbStatement.execute();
+						var acqrArr:Array = dbStatement.getResult().data;
+						textSubId = acqrArr[0].subject;
+						for(var no:Number=0;no<acqrArr.length;no++)
+						{
+								dbStatement.text = "select count(rating) as cnt from cliResTab where faculty like '"+slctdItm+
+							"' and dept like '"+textFeedId+"' and year like '"+textYrFeedId+"' and question like '"+ acqrArr[no].question+"' and rating =0";
+								dbStatement.execute();
+								var temp:Array = dbStatement.getResult().data;
+								var ab0:Number = temp[0].cnt;
+								
+								dbStatement.text = "select count(rating) as cnt from cliResTab where faculty like '"+slctdItm+
+									"' and dept like '"+textFeedId+"' and year like '"+textYrFeedId+"' and question like '"+ acqrArr[no].question+"' and rating =1";
+								dbStatement.execute();
+								temp = dbStatement.getResult().data;
+								var ab1:Number = temp[0].cnt;
+								
+								dbStatement.text = "select count(rating) as cnt from cliResTab where faculty like '"+slctdItm+
+									"' and dept like '"+textFeedId+"' and year like '"+textYrFeedId+"' and question like '"+ acqrArr[no].question+"' and rating =2";
+								dbStatement.execute();
+								temp = dbStatement.getResult().data;
+								var ab2:Number = temp[0].cnt;
+								
+								dbStatement.text = "select count(rating) as cnt from cliResTab where faculty like '"+slctdItm+
+									"' and dept like '"+textFeedId+"' and year like '"+textYrFeedId+"' and question like '"+ acqrArr[no].question+"' and rating =3";
+								dbStatement.execute();
+								temp = dbStatement.getResult().data;
+								var ab3:Number = temp[0].cnt;
+								
+								dbStatement.text = "select count(rating) as cnt from cliResTab where faculty like '"+slctdItm+
+									"' and dept like '"+textFeedId+"' and year like '"+textYrFeedId+"' and question like '"+ acqrArr[no].question+"' and rating =4";
+								dbStatement.execute();
+								temp = dbStatement.getResult().data;
+								var ab4:Number = temp[0].cnt;
+								statArr.addItem({question:""+acqrArr[no].question,poor:""+ab0,satis:""+ab1,good:""+ab2,vgood:""+ab3,excel:""+ab4});
+								
+						}
+								conn.close();
+								
+								var rLen:Number = rightGrphArr.length;
+								//for(var rCl:Number = 0;rCl < rLen ; rCl++)
+								//	rightGrphArr.pop();
+								rightGrphArr.removeAll();
+								
+								var addPoor:Number =0,addSatis:Number = 0,addGood:Number = 0,addVGood:Number = 0,addExcel:Number = 0;
+								for(var aq:Number=0;aq<statArr.length;aq++)
+								{
+									addPoor += Number(statArr[aq].poor);
+									addSatis += Number(statArr[aq].satis);
+									addGood += Number(statArr[aq].good);
+									addVGood += Number(statArr[aq].vgood);
+									addExcel += Number(statArr[aq].excel);
+									
+								}
+								rightGrphArr.addItem({rating:"Poor",value:addPoor});
+								rightGrphArr.addItem({rating:"Satisfactory",value:addSatis});
+								rightGrphArr.addItem({rating:"Good",value:addGood});
+								rightGrphArr.addItem({rating:"Very Good",value:addVGood});
+								rightGrphArr.addItem({rating:"Excellent",value:addExcel});
+								
+					}
+					catch(err:SQLError)
+					{
+						Alert.show(err.toString());
+					}
+			}
+			private function clearAll(eve:MouseEvent):void
+			{
+				var len:Number = statArr.length;
+				//for(var del:Number=0;del<len;del++)
+				//	statArr.pop();
+				statArr.removeAll();
+				var cln:Number = facArrH.length;
+				/*for(var c:Number = 0;c<cln;c++)
+					facArrH.pop();*/
+				facArrH.removeAll();
+				
+				
+				currentState = "";
+			}
+		]]>
+	</fx:Script>
+	<s:Panel x="10" y="10" width="896" height="506" title="Feedback Server" fontFamily.State1="Georgia" fontSize.State1="12" textAlign.State1="center" width.State1="95%" height.State1="95%" height.formGen="95%" width.formGen="95%" fontFamily.feedBackState="Georgia" fontSize.feedBackState="12" height.feedBackState="95%" textAlign.feedBackState="center" width.feedBackState="95%" title.feedBackState="Feedback Stats" title.State1="Feedback Server">
+		<s:controlBarContent>
+			<s:Button label="Generate Feedback Form" height="33" width="176" label.formGen="Back" click.State1="currentState = &quot;formGen&quot;" click.formGen="currentState = &quot;&quot;" fontSize.formGen="12" click.feedBackState="clearAll(event)" label.feedBackState="Back"/>
+			<mx:Spacer includeIn="formGen" height="9" width="100%"/>
+			<s:Button label="Save" fontSize="12" width="176" height="33" includeIn="formGen">
+				<s:click>
+			<![CDATA[
+					cardsFac = formDg.dataProvider as ArrayCollection;
+					
+					
+					
+					var folder:File = File.applicationDirectory;
+					var dbfile:File = folder.resolvePath("SimbaSer.db");
+					
+					conn.open(dbfile,SQLMode.CREATE);
+					
+					try
+					{
+					dbStatement.sqlConnection = conn;
+					conn.begin();
+					dbStatement.clearParameters();
+					dbStatement.text = "delete from sformTab";
+					dbStatement.execute();
+					dbStatement.clearParameters();
+					dbStatement.text = "insert into sformTab(subject,faculty,year,dept) values (:subp,:facp,:yearp,:deptp)";
+					for(var no:Number=0;no<10;no++)
+					{
+					if(cardsFac[no].subName != "" && cardsFac[no].facName != "")
+					{
+					dbStatement.clearParameters();
+					dbStatement.parameters[":subp"] = cardsFac[no].subName;
+					dbStatement.parameters[":facp"] = cardsFac[no].facName;
+					dbStatement.parameters[":yearp"] = yearCId.selectedItem.label;
+					dbStatement.parameters[":deptp"] = deptCId.selectedItem.label;
+					dbStatement.execute();
+					}
+					else
+					continue;
+					}					Alert.show("Form Generated!!!");
+					conn.commit();
+					dbStatement.clearParameters();
+					dbStatement.text = "delete from cliResTab where dept like '"+deptCId.selectedItem.label+"' and year like '"+yearCId.selectedItem.label+"';";
+					dbStatement.execute();
+					
+					
+					}
+					catch(err:SQLError)
+					{
+						Alert.show(err.toString());
+						conn.rollback();
+					}
+					
+					try
+					{
+						conn.begin();
+						dbStatement.clearParameters();
+						dbStatement.text = "delete from squest";
+						dbStatement.execute();
+						dbStatement.text = "insert into squest values (:quest);";
+						for(var noQ:Number=1;noQ<qAdd.numElements;noQ++)
+						{
+							dbStatement.clearParameters();
+							var hG:HGroup = qAdd.getElementAt(noQ-1) as HGroup;
+							var ele:String = (hG.getElementAt(1) as TextInput).text;
+							dbStatement.parameters[":quest"] = ele;
+							dbStatement.execute();
+					
+						}
+						conn.commit();
+						conn.close();
+					}
+					catch(err:SQLError)
+					{
+						Alert.show(err.toString());
+						conn.rollback();
+					}
+					currentState = "";
+			
+				
+			]]>
+		</s:click>
+			</s:Button>
+			<mx:Spacer includeIn="State1,feedBackState" width="100%"/>
+			<s:Label includeIn="feedBackState" id="noResLabId" height="21" width="30%" verticalAlign="middle" textAlign="left" x="960" y="7"/>
+			<s:Button includeIn="State1" label="View Feedback" width="176" height="33">
+				<s:click>
+					<![CDATA[
+						
+						var choose:TitleStat = new TitleStat();
+						choose.addEventListener(CloseEvent.CLOSE,closedTit);
+						
+						PopUpManager.addPopUp(choose,this,true);
+						PopUpManager.centerPopUp(choose);
+						choose.showStatBut.addEventListener(MouseEvent.CLICK,checkDetMeth);
+						function checkDetMeth(event:MouseEvent):void
+						{
+					
+							var folder:File = File.applicationDirectory;
+							var dbfile:File = folder.resolvePath("SimbaSer.db");
+							conn.open(dbfile,SQLMode.CREATE);
+							dbStatement.sqlConnection = conn;
+					
+							try
+							{
+							dbStatement.clearParameters();
+							dbStatement.text = "select faculty,sum(rating) as Sum,count(*) as total,subject from cliResTab where dept like '"+choose.deptTitleId.textInput.text+"' and year like '"+choose.yearTitleId.textInput.text+"' group by faculty;"
+							dbStatement.execute();
+							var temArr:Array = dbStatement.getResult().data;
+							if(temArr != null)
+							{
+								for(var temi:Number=0;temi<temArr.length;temi++)
+								{
+								var perf:Number = Math.round(parseInt((temArr[temi].Sum))/(parseInt(temArr[temi].total)*5)*100);
+								facArrH.addItem({Faculty:""+temArr[temi].faculty,Subject:""+temArr[temi].subject,Performance :""+perf})
+								}
+								currentState = "feedBackState";
+								textFeedId = choose.deptTitleId.textInput.text;
+								textYrFeedId = choose.yearTitleId.textInput.text;
+								dbStatement.clearParameters();
+								dbStatement.text = "select count(*) as cnt from cliResTab where dept like '"+choose.deptTitleId.textInput.text+"' and year like '"+choose.yearTitleId.textInput.text+"' and faculty like '"+facArrH[0].Faculty+"' group by question";
+								dbStatement.execute();
+								temArr = dbStatement.getResult().data;
+								noResLabId.text ="Total No Of Students:"+ temArr[0].cnt;
+								conn.close();
+							}
+							else
+							{
+								Alert.show("No feedback info available for: \nDepatrment:"+choose.deptTitleId.textInput.text+"\nYear:"+choose.yearTitleId.textInput.text);
+								conn.close();
+							}
+							}
+							catch(err:SQLError)
+							{
+								Alert.show(err.toString());
+								conn.close();
+							}
+							PopUpManager.removePopUp(choose);
+						}
+						function closedTit(e:CloseEvent):void
+						{
+							PopUpManager.removePopUp(choose);
+						}
+					]]>
+				</s:click>
+			</s:Button>
+		
+		</s:controlBarContent>
+		<s:Label includeIn="State1" text="Clients connetced and their status" fontSize="16" fontFamily="Georgia" fontWeight="bold" top="20" left="15"/>
+		<s:Panel includeIn="formGen" x="10" y="10" width="58%" height="95%" title="Please fill in the evaluation criteria">
+			<s:VGroup x="10" y="10" width="95%" height="80%" id="qAdd" fontSize="12">
+				<s:HGroup width="100%" height="24" verticalAlign="middle">
+					<s:Label text="Question :" height="100%" fontSize="12" verticalAlign="middle"/>
+					<s:TextInput width="100%" height="100%" fontSize="12" id="qTextId"/>
+					<mx:LinkButton label="X" width="29" color="#FF0303">
+						<mx:click>
+							<![CDATA[
+								qTextId.text = "";
+							]]>
+						</mx:click>
+					</mx:LinkButton>
+				</s:HGroup>
+				<s:HGroup width="100%" height="24" textAlign="right" verticalAlign="middle" horizontalAlign="right" id="addQButH">
+					<s:Button label="+ Add">
+						<s:click>
+							<![CDATA[
+								var qHbox:HGroup = new HGroup();
+								var qLabel:Label = new Label();
+								var qTextInput:TextInput = new TextInput();	
+								var qDelBut:LinkButton = new LinkButton();
+								qAdd.addElementAt(qHbox,qAdd.getElementIndex(addQButH));
+								qHbox.width = addQButH.width;
+								qHbox.height = 24;
+								qLabel.height = addQButH.height;
+								qLabel.text = "Question :"
+								qTextInput.width = qTextId.width;
+								qTextInput.height = qTextId.height;
+								qDelBut.label = "X";
+								qDelBut.width = 29;
+								qHbox.addElement(qLabel);
+								qHbox.addElement(qTextInput);
+								qHbox.addElement(qDelBut);
+								qDelBut.addEventListener(MouseEvent.CLICK,delChild);
+								function delChild(e:MouseEvent):void
+								{
+									qAdd.removeElementAt(qAdd.getElementIndex(e.currentTarget.parent));
+								}
+							
+							]]>
+						</s:click>
+					</s:Button>
+				</s:HGroup>
+			</s:VGroup>
+		</s:Panel>
+		<mx:DataGrid includeIn="State1" y="44" id="clientStatDG" dataProvider="{clientSocket}" width="257" height="80%" left="47">
+			<mx:columns>
+				<mx:DataGridColumn headerText="IP Addresses of connected clients" dataField="remoteAddress" />
+			</mx:columns>
+		</mx:DataGrid>
+		<s:Label includeIn="State1" text="Total no of clients :" left="30" bottom="6"/>
+		<s:Label includeIn="State1" x="146" id="clientCInput" text="{clientCount.toString()}" bottom="6"/>
+		<s:Panel includeIn="formGen" y="10" width="40%" height="95%" right="10" title="Feedback Details">
+			<s:Label x="10" y="14" text="Department :" fontSize="16" fontWeight="normal" fontFamily="Times New Roman"/>
+			<s:ComboBox x="106" y="9" selectedIndex="0" dataProvider="{cards}" id="deptCId"/>	
+			<s:Label x="52" y="52" text="Year :" fontSize="16" fontFamily="Times New Roman"/>
+			<s:ComboBox x="106" y="44" selectedIndex="0" dataProvider="{cardsYr}" id="yearCId"/>
+			<mx:DataGrid x="6" y="86" height="60%" editable="true" rowHeight="25" rowCount="10" width="95%" dataProvider="{cardsFac}" fontSize="12" id="formDg">
+				<mx:columns>
+					<mx:DataGridColumn headerText="Subject Name" dataField="subName"/>
+					<mx:DataGridColumn headerText="Faculty Name" dataField="facName"/>
+				</mx:columns>
+			</mx:DataGrid>
+      
+		</s:Panel>
+		<s:HGroup includeIn="feedBackState" x="0" y="0" width="100%" height="100%">
+			<s:Group width="50%" height="100%" id="leftGrpId">
+				<s:Label x="14" y="18" text="Department :" verticalAlign="middle" fontFamily="Georgia" fontSize="14"/>
+				<s:Label x="275" y="19" text="Year :" verticalAlign="middle" fontFamily="Georgia" fontSize="14"/>
+				<s:Label x="104" y="16" fontSize="14" verticalAlign="middle" width="159" id="feedDeptId" text="{textFeedId}" height="16"/>
+				<s:Label x="319" y="17" fontSize="14" verticalAlign="middle" width="152" id="feedYrId" text="{textYrFeedId}"/>
+				<mx:DataGrid x="14" y="69" id="statDG" dataProvider="{facArrH}" width="95%" height="50%" itemClick="genFacGrph(event)">
+		 			<mx:columns>
+						<mx:DataGridColumn headerText="Faculty" dataField="Faculty"/>
+						<mx:DataGridColumn headerText="Subject" dataField="Subject"/>
+						<mx:DataGridColumn headerText="Performance(%)" dataField="Performance"/>
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:ColumnChart x="10" id="columnchart1" width="80%" showDataTips="true" dataProvider="{facArrH}" height="30%" bottom="0">
+					<mx:horizontalAxis>
+						<mx:CategoryAxis categoryField="Faculty"/>
+					</mx:horizontalAxis>
+					<mx:series>
+						<mx:ColumnSeries showDataEffect="{slideIn}" hideDataEffect="{slideOut}" displayName="Performance" xField="Faculty" yField="Performance"/>
+					</mx:series>
+				</mx:ColumnChart>
+				<mx:Legend dataProvider="{columnchart1}" bottom="72" right="10"/>
+				<s:Button label="Print" id="printLeft" bottom="4" right="10">
+					<s:click>
+						<![CDATA[
+						var printJob:FlexPrintJob = new FlexPrintJob();
+						 var printFlag:Boolean = printJob.start();
+						if(printFlag == true)
+						{
+							printJob.addObject(leftGrpId, FlexPrintJobScaleType.SHOW_ALL);
+							printJob.send();
+						}
+						]]>
+					</s:click>
+				</s:Button>
+			</s:Group>
+			<mx:VRule height="100%"/>
+			<s:Group width="50%" height="100%" id="rightGrpId">
+				<mx:AdvancedDataGrid x="10" y="70" id="adg1" designViewDataType="flat" width="95%" height="50%" dataProvider="{statArr}">
+					<mx:groupedColumns>
+						<mx:AdvancedDataGridColumn headerText="Questions" dataField="question"/>
+						<mx:AdvancedDataGridColumnGroup headerText="Rating">
+							<mx:AdvancedDataGridColumn headerText="Poor" dataField="poor"/>
+							<mx:AdvancedDataGridColumn headerText="Satisfactory" dataField="satis"/>
+							<mx:AdvancedDataGridColumn headerText="Good" dataField="good"/>
+							<mx:AdvancedDataGridColumn headerText="Very Good" dataField="vgood"/>
+							<mx:AdvancedDataGridColumn headerText="Excellent" dataField="excel"/>
+						</mx:AdvancedDataGridColumnGroup>
+					</mx:groupedColumns>
+				</mx:AdvancedDataGrid>
+				<s:Label x="405" y="43" text="Year :" verticalAlign="middle" fontFamily="Georgia" fontSize="14"/>
+				<s:Label x="468" y="43" fontSize="14" verticalAlign="middle" width="103" id="feedYrId0" text="{textYrFeedId}"/>
+				<s:Label y="12" text="Department :" verticalAlign="middle" fontFamily="Georgia" fontSize="14" right="128"/>
+				<s:Label x="10" y="14" text="Faculty  Name:" verticalAlign="middle" fontFamily="Georgia" fontSize="14"/>
+				<s:Label x="112" y="12" fontSize="14" verticalAlign="middle" width="231" id="feedFacId" height="16" text="{textFacId}"/>
+				<s:Label x="469" y="13" fontSize="14" verticalAlign="middle" width="120" id="feedDeptId0" text="{textFeedId}" height="16"/>
+				<s:Label x="15" y="43" text="Subject Name:" verticalAlign="middle" fontFamily="Georgia" fontSize="14"/>
+				<s:Label x="112" y="41" fontSize="14" verticalAlign="middle" width="231" id="feedSubId" height="16" text="{textSubId}"/>
+				<s:Button label="Print" id="printRight" right="10" bottom="4">
+					<s:click>
+						<![CDATA[
+						var printJob:FlexPrintJob = new FlexPrintJob();
+						var printFlag:Boolean = printJob.start();
+						if(printFlag == true)
+						{
+							printJob.addObject(rightGrpId, FlexPrintJobScaleType.SHOW_ALL);
+							printJob.send();
+						}
+						]]>
+					</s:click>
+				</s:Button>
+				<mx:BarChart id="barchart1" height="30%" bottom="0" showDataTips="true" left="10" dataProvider="{rightGrphArr}">
+					<mx:verticalAxis>
+						<mx:CategoryAxis categoryField="rating"/>
+					</mx:verticalAxis>
+					<mx:series>
+						<mx:BarSeries showDataEffect="{slideRight}" hideDataEffect="{slideLeft}" displayName="Rating" xField="value" yField="rating"/>
+					</mx:series>
+				</mx:BarChart>
+				<mx:Legend dataProvider="{barchart1}" x="461" bottom="68"/>
+			</s:Group>
+		</s:HGroup>
+		<mx:SWFLoader includeIn="State1" y="44" width="70%" height="40%" right="30" source="assets/SerPheonix.swf"/>
+	</s:Panel>
+</s:WindowedApplication>
