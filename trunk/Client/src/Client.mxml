@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="connectToServer()">
+	<s:states>
+		<s:State name="State1"/>
+		<s:State name="opine"/>
+	</s:states>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.containers.TitleWindow;
+			import mx.containers.VBox;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.Label;
+			import mx.controls.RadioButton;
+			import mx.controls.Text;
+			import mx.controls.TextInput;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.HGroup;
+			import spark.components.RadioButton;
+			import spark.components.RadioButtonGroup;
+			import spark.components.VGroup;
+			
+			
+			
+			/*	//var myObj:CheckNumber = new CheckNumber(1,sendTextId.text); 
+			var abc:Array = new ArrayCollection([1,""+sendTextId.text]);
+			socket.writeObject(abc);
+			socket.flush();
+			recvTextId.text += "\nClient:"+sendTextId.text;
+			sendTextId.text = "";
+			*/
+			
+			
+			[Bindable]
+			private var abc:Array= new Array();
+			private var socket:Socket;
+			private var conn:SQLConnection = new SQLConnection();
+			private var dbStatement:SQLStatement=new SQLStatement();
+
+			
+			private function connectToServer():void 
+			{
+				var strtT:TitleWindow = new TitleWindow();
+				strtT.width = 200;
+				strtT.height = 100;
+				strtT.title = "Enter Server Address...";
+				var vB:VGroup = new VGroup();
+				var serAdd:TextInput = new TextInput();
+				var serBut:Button = new Button();
+				serAdd.x = 38;
+				serBut.x = 138;
+				
+				vB.horizontalAlign = "middle";
+				serAdd.text = "127.0.0.1";
+				serBut.label = "Connect";
+				vB.addElement(serAdd);
+				vB.addElement(serBut);
+				serBut.addEventListener(MouseEvent.CLICK,serList);
+				PopUpManager.addPopUp(strtT,this,true);
+				PopUpManager.centerPopUp(strtT);
+				strtT.addElement(vB);
+				
+				function serList(e:MouseEvent):void{
+				socket = new Socket();
+				socket.addEventListener(Event.CONNECT, onConnect);
+				socket.addEventListener(IOErrorEvent.IO_ERROR,ioErrEvnt);
+				socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR,secErrEvnt);
+				socket.connect(serAdd.text,1238);
+				PopUpManager.removePopUp(strtT);
+				}
+			}
+			
+			private function secErrEvnt(evnt:Error):void
+			{
+				Alert.show(evnt.toString());
+			}
+			
+			private function ioErrEvnt(event:Error):void
+			{
+				Alert.show(event.toString());
+			}
+			
+			private function onConnect(e:Event):void {
+				Alert.show("Connected to server");
+				socket.addEventListener(ProgressEvent.SOCKET_DATA,onData);
+				socket.addEventListener(Event.CLOSE, onClose);
+			}
+			private function onData(event: ProgressEvent):void {
+				
+				abc= socket.readObject();
+				try
+				{
+			
+					if(abc[0].value == 1)
+					{
+						close();
+					}
+				}
+				catch(err:IOError)
+				{
+					
+					Alert.show("Server not yet Generated Feedback form...");
+				}
+				//var checkObj:CheckNumber = (CheckNumberObj;
+				
+			}
+			
+			private function onClose(e:Event):void {
+				Alert.show("Server Socket is Closed");
+				close();
+			}
+
+		]]>
+	</fx:Script>
+	<s:Panel includeIn="opine" x="10" y="10" width="95%" height="95%" title="IndyWiz Phoenix" fontSize="12" fontFamily="Georgia" fontStyle="normal" fontWeight="normal" id="opiId">
+		<s:Panel width="70%" height="80%" horizontalCenter="0" verticalCenter="0" id="subPanId" fontSize="12">
+			<s:controlBarContent>
+				<mx:Spacer height="19" width="100%"/>
+				<s:Button label="Next" height="34" fontSize="12" y="11" id="nextSubBut"/>
+			
+			</s:controlBarContent>
+			<s:HGroup x="10" y="10" width="95%" height="35" verticalAlign="middle">
+				<s:Label text="Year :" fontSize="12"/>
+				<s:Label fontSize="12" width="74" id="cliYr"/>
+				<s:Label text="Faculty Name :" fontSize="12"/>
+				<s:Label width="217" fontSize="12" height="18" y="6" verticalAlign="middle" id="cliFacL"/>
+				<s:Label text="Dept :" fontSize="12"/>
+				<s:Label fontSize="12" id="cliDeptL" width="65"/>
+			</s:HGroup>
+			<s:VGroup x="11" y="60" width="95%" height="80%" id="compVGrp" gap="20">
+			</s:VGroup>
+		</s:Panel>
+	</s:Panel>
+	<s:Panel includeIn="State1" y="15" width="95%" height="100%" textAlign="left" title="IndyWiz Phoenix" fontSize="12" fontFamily="Georgia" fontWeight="normal" horizontalCenter="-22" id="folPanId">
+		<s:Button label="Follow" fontSize="12" width="130" height="35" right="396" bottom="23">
+			<s:click>
+				<![CDATA[
+				currentState = "opine";
+				var incN:Number = 0;
+				var cliResArr:ArrayCollection = new ArrayCollection();
+				var questns:Array = new Array();
+				function detailMethod(no:Number):void
+				{
+				incN = no;
+				/*if(no > 0 && no < abc[1].length)
+				{
+					cliResArr.addItem({year:""+cliYr.text,dept:""+cliDeptL.text,facName:""+cliFacL.text,question:""+questns.questLab.text,rating:""+questns.radiogroup1.selectedValue});
+				}*/
+				if(no<abc[1].length)
+				{
+					compVGrp.removeAllElements();
+					cliYr.text = abc[1][no].year;
+					cliFacL.text = abc[1][no].faculty;
+					cliDeptL.text = abc[1][no].dept;
+					subPanId.title =  abc[1][no].subject;
+					for(var incQ:Number=0;incQ<abc[0].length;incQ++)
+					{
+					    questns[incQ] = new ClientCustom();
+						questns[incQ].questLab.text = abc[0][incQ].question;
+						questns[incQ].width = compVGrp.width;
+						compVGrp.addElement(questns[incQ]);
+						
+						
+					}
+					if (no  == abc[1].length -1)
+					{
+						nextSubBut.label = "Submit";
+				
+					}
+				}
+				else
+				{
+						socket.writeObject(cliResArr);
+						socket.flush();
+						compVGrp.removeAllElements();
+						currentState = "State1";
+						//close();
+						
+				}
+				}
+				detailMethod(incN);	
+				nextSubBut.addEventListener(MouseEvent.CLICK,increMethod);
+				
+				function increMethod(event:MouseEvent):void
+				{
+					var selectFlag:Boolean = true; 
+					for(var queRes:Number = 0;queRes < questns.length;queRes++)
+					{
+						if(questns[queRes].radiogroup1.selectedValue == null)
+						{
+							selectFlag = false;
+							Alert.show("Give FeedBack to all questions !!!","Error");
+							break;
+							
+						}
+				
+					}
+					if(selectFlag == true)
+					{
+						for(queRes = 0;queRes < questns.length;queRes++)
+						{
+							cliResArr.addItem({year:""+cliYr.text,dept:""+cliDeptL.text,facName:""+cliFacL.text,question:""+questns[queRes].questLab.text,rating:""+(questns[queRes].ratingHBox.getElementIndex(questns[queRes].radiogroup1.selection as spark.components.RadioButton)),subName:""+subPanId.title});
+						}
+						incN++;
+						detailMethod(incN);
+					}
+				}
+				
+				/*switch(abc[0])
+				{
+				case 1:
+				for(var noQ:Number=1;noQ<abc.length;noQ++)
+				{
+				var qH:HGroup = new HGroup();
+				var que:Label = new Label();
+				que.text = abc[noQ];
+				qVGrp.addElement(qH);
+				qH.addElement(que);
+				
+				for(var inc:Number=1;inc<6;inc++)
+				{
+				var rBut:RadioButton = new RadioButton();
+				rBut.groupName = "rating"+noQ;
+				var lab:String;
+				switch(inc)
+				{
+				case 1:
+				lab = "Poor";
+				break;
+				case 2:
+				lab = "Satisfactory";
+				break;
+				case 3:
+				lab = "Good";
+				break;
+				case 4:
+				lab = "Very Good";
+				break;
+				case 5:
+				lab = "Excellent";
+				break;
+				}
+				var rateL:Label = new Label();
+				rateL.text = lab;
+				qH.addElement(rateL);
+				qH.addElement(rBut);
+				}
+				
+				
+				
+				}
+				
+				break;
+				
+				}*/
+				]]>
+			</s:click>
+		</s:Button>
+		<s:Label x="22" y="448" text="Enough said...Follow us..." fontSize="14" fontFamily="Georgia" width="199"/>
+		<mx:VRule y="0" horizontalCenter="0" height="100%" width="0"/>
+		<s:Button label="Features" height="35" width="130" right="676" bottom="23">
+			<s:click>
+				<![CDATA[
+					var abtPh:AboutSoftware = new AboutSoftware();
+					abtPh.addEventListener(CloseEvent.CLOSE,closeAbtSft);
+					PopUpManager.addPopUp(abtPh,this,true);
+					PopUpManager.centerPopUp(abtPh);
+					function closeAbtSft(eve:CloseEvent):void
+					{
+						PopUpManager.removePopUp(abtPh);
+					}
+				]]>
+			</s:click>
+		</s:Button>
+		<s:Button label="About Us" height="35" width="130" right="535" bottom="23">
+			<s:click>
+				<![CDATA[
+					var abtUs:abtUsTitle = new abtUsTitle();
+					abtUs.addEventListener(CloseEvent.CLOSE,closeAbtUs);
+					PopUpManager.addPopUp(abtUs,this,true);
+					PopUpManager.centerPopUp(abtUs);
+					function closeAbtUs(evnt:CloseEvent):void
+					{
+						PopUpManager.removePopUp(abtUs);
+					}
+				]]>
+			</s:click>
+		</s:Button>
+		<mx:Image source="assets/ClientPheonix2.png" x="606" top="10"/>
+		<mx:SWFLoader y="230" height="40%" width="60%" source="assets/Pheonix.swf" right="10"/>
+		<s:Label x="10" y="25" text="Giving feedback is about sharing your feelings...!" height="33" verticalAlign="middle" width="333" fontWeight="bold"/>
+		<s:Label x="75" y="66" text="The human ego is a delicate thing, especially when taking constructive feedback...!" height="42" verticalAlign="middle" textAlign="left" width="276" fontSize="14"/>
+		<mx:Image x="24" y="65" height="36" width="39" source="assets/EGo.jpg"/>
+		<mx:Image x="24" y="131" width="39" height="36" source="assets/Feedback.jpg"/>
+		<s:Label x="72" y="127" text="Feedback - A Duty: It is always encouraging to someone who really works hard. The principle is that performance ignored tends to disappear...!" height="71" width="299" verticalAlign="middle" fontSize="14"/>
+		<mx:Image x="24" y="221" width="39" height="36" source="assets/Don'tBlame.jpg"/>
+		<s:Label x="71" y="222" text="Don’t blame.  Dwelling on the past is a waste of time – and harmful...!" height="44" verticalAlign="middle" fontSize="14" width="300"/>
+		<mx:Image x="22" y="305" width="39" height="46" source="assets/NegativeFeed.jpg" scaleContent="false"/>
+		<s:Label x="70" y="293" text="Negative feedback (Not recommended!): It's difficult and awkward to give negative feedback, and you have to make sure that you present it in a digestible way.Negative feedback is the best possible chance you have to really change...!" height="80" width="292" fontSize="14" textAlign="left" verticalAlign="justify"/>
+		<s:Label x="10" y="410" text=" By keeping these four rules in mind, you'll find you will be a great resource and trusted advisor !!!" fontWeight="bold" fontSize="12" width="408" verticalAlign="middle"/>
+	</s:Panel>
+</s:WindowedApplication>
+

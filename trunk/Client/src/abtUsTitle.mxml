@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="701.4"  height="471" title="About Us">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:TabNavigator x="10" y="10" width="663.4" height="402" backgroundColor="#FFFFFF">
+		<mx:Canvas label="Software" width="100%" height="100%" backgroundColor="#B8F155">
+			<mx:Text text="Pheonix" fontFamily="Georgia" fontSize="20" fontWeight="bold" color="#4D35C5" left="9" top="14"/>
+			<mx:Text x="55" y="36" text="Version 1.01 beta" fontSize="9"/>
+			<mx:Text text="A feedback automation app developed in Adobe AIR, by Indy Wiz (Indomitable Wizards)." width="575.4" height="24" fontSize="14" top="66" left="10" fontFamily="Georgia"/>
+			<mx:Text text="THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, &#xa;INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A &#xa;PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS&#xa;HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF &#xa;CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE &#xa;SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.&#xa;" width="595.4" height="103" textAlign="left" fontSize="14" left="10" top="98" fontFamily="Georgia"/>
+			<mx:Text x="10" y="209" text="Everyone is permitted to copy and redistribute our software but change is not allowed!!!" width="585.4" fontSize="12" fontFamily="Georgia"/>
+		</mx:Canvas>
+		<mx:Canvas label="Authors" width="100%" height="100%" backgroundColor="#B8F155">
+			<mx:Text x="34" y="22" text="IndyWiz " width="84" fontWeight="bold" fontSize="15"/>
+			<mx:Text x="57" y="54" text="R Viswanathan&#xd;K Tulasi Ram&#xd;U Sumanth Kumar" width="159" height="82" fontStyle="italic" fontSize="18" fontFamily="Georgia"/>
+			<mx:Text x="366" y="25" text="Contact Details" height="23" fontWeight="bold" fontSize="14"/>
+			<mx:Text x="366" y="67" text="Email id: wizzy@groups.facebook.com&#xd;&#xd;Mail Us:&#xd;Indy Wiz,&#xd;Information Technology&#xd;CVSR College Of Engineering&#xd;Ghatkesar&#xd;Andhra Pradesh&#xd;India&#xd;&#xd;Contact No:      9966005105&#xd;                             9440047345&#xd;                             9010302092" width="236.4" height="280" fontStyle="italic" fontFamily="Georgia" fontSize="12"/>
+			<mx:Image x="33" y="162.5" toolTip="Indomitable Wizards are now Indy Wiz!!!" source="assets/ClientPheonix2.png" width="201" height="197"/>
+		</mx:Canvas>
+	</mx:TabNavigator>
+</s:TitleWindow>
